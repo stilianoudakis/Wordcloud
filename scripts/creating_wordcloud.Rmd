@@ -1,0 +1,53 @@
+---
+title: "Creating a Wordcloud"
+author: "Spiro Stilianoudakis"
+date: "11/13/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Loading Libraries
+
+```{r}
+library(openxlsx)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(wordcloud)
+library(wordcloud2)
+library(tm)
+library(textstem)
+```
+
+# Reading in textdata
+
+```{r}
+comments <- read.xlsx("C:/Users/stili/Documents/Wordcloud/data/comments_dataset.xlsx",
+                    sheet = "Sheet1",
+                    startRow = 1,
+                    colNames = TRUE,
+                    na.strings = "",
+                    detectDates = TRUE)
+```
+
+# All comments
+
+## Positive & Negative
+
+### Extracting text
+
+```{r}
+all_comments <- paste(comments$F1,collapse=" ")
+all_comments_clean <- gsub("\\W", replace=" ", all_comments) #remove punctuation
+all_comments_clean <- gsub("\\d", replace=" ", all_comments_clean) #remove numbers 
+all_comments_clean <- tolower(all_comments_clean) #create lower case string
+all_comments_clean <- removeWords(all_comments_clean, stopwords()) #remove stopwords
+#all_comments_clean <- removeWords(all_comments_clean, c()) #remove specific words
+all_comments_clean <- gsub("\\b[A-z]\\b{1}", replace=" ", all_comments_clean) #remove words of lenght 1
+all_comments_clean <- stripWhitespace(all_comments_clean) #remove extra white space
+all_comments_clean <- stemD
+```
+
