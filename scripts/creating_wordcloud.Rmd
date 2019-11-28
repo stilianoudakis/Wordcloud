@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # Loading Libraries
 
 ```{r}
+#Sys.setenv(JAVA_HOME="C:/Program Files/Java/jre1.8.0_231/")
 library(openxlsx)
 library(dplyr)
 library(ggplot2)
@@ -32,6 +33,11 @@ comments <- read.xlsx("C:/Users/stili/Documents/Wordcloud/data/comments_dataset.
                     colNames = TRUE,
                     na.strings = "",
                     detectDates = TRUE)
+
+comments$score = comments$F2+comments$F3
+comments$category <- ifelse(comments$score==0, "Neutral",
+                            ifelse(comments$score<0, "Negative", "Positive"))
+table(comments$category)
 ```
 
 # All comments
@@ -178,5 +184,44 @@ comparison.cloud(tdm,
                  scale = c(3,.5),
                  use.r.layout = TRUE,
                  max.words=200)
+```
+
+## Positive
+
+### Braces
+
+```{r}
+pb <- comments[which(comments$category=="Positive" & comments$group=="B"),]
+pb_comments <- paste(pb$F1,collapse=" ")
+pb_comments_clean <- replace_contraction(pb_comments)
+pb_comments_clean <- gsub("\\W", replace=" ", pb_comments_clean) #remove punctuation
+pb_comments_clean <- gsub("\\d", replace=" ", pb_comments_clean) #remove numbers 
+pb_comments_clean <- tolower(pb_comments_clean) #create lower case string
+pb_comments_clean <- removeWords(pb_comments_clean, stopwords()) #remove stopwords
+pb_comments_clean <- removeWords(pb_comments_clean, c("get", "getting", "got", "just", "like", "can", "now", "im", "will", "braces", "invisalign", "direct", "teeth")) #remove specific words
+pb_comments_clean <- gsub("\\b[A-z]\\b{1}", replace=" ", pb_comments_clean) #remove words of lenght 1
+pb_comments_clean <- stripWhitespace(pb_comments_clean) #remove extra white space
+
+#plotting most frequent terms
+#frequent_terms <- freq_terms(pb_comments_clean, 20)
+#plot(frequent_terms)
+
+pb_comments_clean <- str_split(pb_comments_clean, pattern="\\s+")
+pb_comments_clean <- unlist(pb_comments_clean)
+
+#remove key words like braces, teeth, and invisalign
+#all_comments_clean <- all_comments_clean[-which(all_comments_clean %in% c("braces", "teeth", "invisalign"))]
+
+wordcloud(words = pb_comments_clean,
+          #freq=,
+          max.words = 200,
+          random.order = FALSE,
+          min.freq = 2,
+          colors = brewer.pal(6, "Dark2"),
+          #colors = rainbow(3),
+          use.r.layout = TRUE,
+          scale = c(3,.5),
+          rot.per = 0.3)
+
 ```
 
