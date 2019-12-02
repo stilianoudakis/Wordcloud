@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # Loading Libraries
 
 ```{r}
-#Sys.setenv(JAVA_HOME="C:/Program Files/Java/jre1.8.0_231/")
+Sys.setenv(JAVA_HOME="C:/Program Files/Java/jre1.8.0_231/")
 library(openxlsx)
 library(dplyr)
 library(ggplot2)
@@ -92,7 +92,107 @@ wordcloud2(w,
            minSize = 0)
 ```
 
-## Comparison cloud
+# Function to create word cloud
+
+```{r}
+wordcloud_func <- function(wordData, subsetList, rmWords, freqTerms=TRUE, n=30, figPath=getwd(), maxWords = 200, minFreq = 2){
+  
+  #attach(wordData)
+  
+  if(class(wordData)!="data.frame"){print("wordData is not a data frame")}
+  
+  #filter data if necessary
+  if(class(subsetList)=="list"){
+    filt <- as.character()
+    for(i in 1:length(subsetList)){
+      newfilt <- noquote(paste0(noquote(paste0(names(subsetList)[i], "==")), "'", subsetList[[i]], "'"))
+      filt <- c(filt, newfilt)
+    }
+    #filt <- noquote(paste(filt,collapse=","))
+    filt <- noquote(paste(filt,collapse=" & "))
+    wordData <- wordData %>%
+      filter_(filt)
+    #wordData <- wordData[which(filt),]
+  }
+  
+  #cleaning
+  wordData <- paste(wordData[,1],collapse=" ")
+  wordData <- replace_contraction(wordData)
+  wordData <- gsub("\\W", replace=" ", wordData) #remove punctuation
+  wordData <- gsub("\\d", replace=" ", wordData) #remove numbers 
+  wordData <- tolower(wordData) #create lower case string
+  wordData <- removeWords(wordData, stopwords()) #remove stopwords
+  wordData <- removeWords(wordData, rmWords) #remove specific words
+  wordData <- gsub("\\b[A-z]\\b{1}", replace=" ", wordData) #remove words of lenght 1
+  wordData <- stripWhitespace(wordData) #remove extra white space
+  
+  if(freqTerms){
+    frequent_terms <- freq_terms(wordData, n)
+    png(filename = paste(figPath, "/freqterms", "_", gsub("'","",filt), ".png", sep = ''),
+        #res = 300,
+        units = "px",
+        width = 500,
+        height = 500)
+    plot(frequent_terms, main=paste("Top n =", n, "words"))
+    dev.off()
+  }
+  
+  wordData <- str_split(wordData, pattern="\\s+")
+  wordData <- unlist(wordData)
+  
+  tiff(filename = paste(figPath, "/wordcloud", "_", gsub("'","",filt), ".png", sep = ''),
+       width = 5, 
+       height = 5, 
+       units = 'in', 
+       res = 300)
+  wordcloud(words = wordData,
+            #freq=,
+            max.words = maxWords,
+            random.order = FALSE,
+            min.freq = minFreq,
+            colors = brewer.pal(6, "Dark2"),
+            #colors = rainbow(3),
+            use.r.layout = TRUE,
+            scale = c(3,.5),
+            rot.per = 0.3)
+  dev.off()
+}
+
+
+```
+
+## Creating stratified wordclouds
+
+```{r}
+rmWords <- c("get", "getting", "got", "just", "like", "can", "now", "im", "will", "braces", "invisalign", "direct", "teeth")
+
+subsetList <- list(category="Positive")
+wordcloud_func(wordData = comments, subsetList = subsetList, rmWords = rmWords)
+
+subsetList <- list(category="Positive",group="B")
+wordcloud_func(wordData = comments, subsetList = subsetList, rmWords = rmWords)
+
+subsetList <- list(category="Positive",group="D")
+wordcloud_func(wordData = comments, subsetList = subsetList, rmWords = rmWords)
+
+subsetList <- list(category="Positive",group="I")
+wordcloud_func(wordData = comments, subsetList = subsetList, rmWords = rmWords)
+
+subsetList <- list(category="Negative")
+wordcloud_func(wordData = comments, subsetList = subsetList, rmWords = rmWords)
+
+subsetList <- list(category="Negative",group="B")
+wordcloud_func(wordData = comments, subsetList = subsetList, rmWords = rmWords)
+
+subsetList <- list(category="Negative",group="D")
+wordcloud_func(wordData = comments, subsetList = subsetList, rmWords = rmWords)
+
+subsetList <- list(category="Negative",group="I")
+wordcloud_func(wordData = comments, subsetList = subsetList, rmWords = rmWords)
+```
+
+
+# Comparison cloud
 
 ```{r}
 #braces
@@ -184,44 +284,5 @@ comparison.cloud(tdm,
                  scale = c(3,.5),
                  use.r.layout = TRUE,
                  max.words=200)
-```
-
-## Positive
-
-### Braces
-
-```{r}
-pb <- comments[which(comments$category=="Positive" & comments$group=="B"),]
-pb_comments <- paste(pb$F1,collapse=" ")
-pb_comments_clean <- replace_contraction(pb_comments)
-pb_comments_clean <- gsub("\\W", replace=" ", pb_comments_clean) #remove punctuation
-pb_comments_clean <- gsub("\\d", replace=" ", pb_comments_clean) #remove numbers 
-pb_comments_clean <- tolower(pb_comments_clean) #create lower case string
-pb_comments_clean <- removeWords(pb_comments_clean, stopwords()) #remove stopwords
-pb_comments_clean <- removeWords(pb_comments_clean, c("get", "getting", "got", "just", "like", "can", "now", "im", "will", "braces", "invisalign", "direct", "teeth")) #remove specific words
-pb_comments_clean <- gsub("\\b[A-z]\\b{1}", replace=" ", pb_comments_clean) #remove words of lenght 1
-pb_comments_clean <- stripWhitespace(pb_comments_clean) #remove extra white space
-
-#plotting most frequent terms
-#frequent_terms <- freq_terms(pb_comments_clean, 20)
-#plot(frequent_terms)
-
-pb_comments_clean <- str_split(pb_comments_clean, pattern="\\s+")
-pb_comments_clean <- unlist(pb_comments_clean)
-
-#remove key words like braces, teeth, and invisalign
-#all_comments_clean <- all_comments_clean[-which(all_comments_clean %in% c("braces", "teeth", "invisalign"))]
-
-wordcloud(words = pb_comments_clean,
-          #freq=,
-          max.words = 200,
-          random.order = FALSE,
-          min.freq = 2,
-          colors = brewer.pal(6, "Dark2"),
-          #colors = rainbow(3),
-          use.r.layout = TRUE,
-          scale = c(3,.5),
-          rot.per = 0.3)
-
 ```
 
