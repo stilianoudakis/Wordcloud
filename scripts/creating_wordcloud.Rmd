@@ -164,7 +164,7 @@ wordcloud_func <- function(wordData, subsetList, rmWords, freqTerms=TRUE, n=30, 
 ## Creating stratified wordclouds
 
 ```{r}
-rmWords <- c("get", "getting", "got", "just", "like", "can", "now", "im", "will", "braces", "invisalign", "direct", "teeth")
+rmWords <- c("get", "getting", "got", "just", "can", "now", "im", "will", "braces", "invisalign", "direct", "teeth")
 
 subsetList <- list(category="Positive")
 wordcloud_func(wordData = comments, subsetList = subsetList, rmWords = rmWords)
