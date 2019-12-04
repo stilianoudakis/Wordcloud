@@ -38,6 +38,10 @@ comments$score = comments$F2+comments$F3
 comments$category <- ifelse(comments$score==0, "Neutral",
                             ifelse(comments$score<0, "Negative", "Positive"))
 table(comments$category)
+
+table(comments$group[-which(comments$category=="Neutral")], comments$category[-which(comments$category=="Neutral")])
+chisq.test(table(comments$group[-which(comments$category=="Neutral")], comments$category[-which(comments$category=="Neutral")]))
+prop.table(table(comments$group[-which(comments$category=="Neutral")], comments$category[-which(comments$category=="Neutral")]),1)
 ```
 
 # All comments
