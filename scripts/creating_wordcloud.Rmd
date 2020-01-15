@@ -42,6 +42,9 @@ table(comments$category)
 table(comments$group[-which(comments$category=="Neutral")], comments$category[-which(comments$category=="Neutral")])
 chisq.test(table(comments$group[-which(comments$category=="Neutral")], comments$category[-which(comments$category=="Neutral")]))
 prop.table(table(comments$group[-which(comments$category=="Neutral")], comments$category[-which(comments$category=="Neutral")]),1)
+
+mean(comments$score[which(comments$category=="Positive")])
+mean(comments$score[which(comments$category=="Negative")])
 ```
 
 # All comments
@@ -195,7 +198,7 @@ subsetList <- list(category="Negative",group="I")
 wordcloud_func(wordData = comments, subsetList = subsetList, rmWords = rmWords)
 ```
 
-
+<!--
 # Comparison cloud
 
 ```{r}
@@ -289,4 +292,5 @@ comparison.cloud(tdm,
                  use.r.layout = TRUE,
                  max.words=200)
 ```
+-->
 
